@@ -1,5 +1,5 @@
 ---
-name: Lab bench Korad
+name: XdoctorwhoZ bench Korad
 description: Bench utilisant Korad KD3005P sur port USB workstation
 ---
 
