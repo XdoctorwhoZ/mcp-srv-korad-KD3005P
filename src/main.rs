@@ -9,14 +9,15 @@ mod types;
 
 use rmcp::transport::stdio;
 use rmcp::ServiceExt;
+use tracing::error;
+use tracing::info;
 use tracing::Level;
+
+use lulu_logs_client::{lulu_init, lulu_shutdown, lulu_start_pulse, LuluClientConfig};
 
 use trace::TraceBootstrap;
 
 use engine::Engine;
-
-/// Package name from Cargo.toml at compile time
-const PACKAGE_NAME: &str = env!("CARGO_PKG_NAME");
 
 /// Main entry point for the Korad KD3005P MCP server.
 ///
@@ -37,18 +38,28 @@ async fn main() {
             }
         }
         None => {
+            // Lulu-logs: init if --lulu is provided
+            let lulu_enabled = args.lulu.is_some();
+            if let Some(ref addr) = args.lulu {
+                let (host, port) = cli::parse_lulu_address(addr);
+                lulu_init(LuluClientConfig {
+                    broker_host: host,
+                    broker_port: port,
+                    ..LuluClientConfig::default()
+                })
+                .expect("Failed to initialize lulu-logs");
+            }
+
             // Setup: initialize tracing logger for debugging
             TraceBootstrap::default()
-                .with_level(if cfg!(debug_assertions) {
-                    Level::TRACE
-                } else {
-                    Level::INFO
-                })
+                .with_level(Level::TRACE)
                 .filter_rmcp()
                 .display_target(if cfg!(debug_assertions) { true } else { false })
-                .on_mcp_file(PACKAGE_NAME)
                 .build()
                 .expect("failed to init logger");
+
+            info!("Starting Korad KD3005P MCP server with args: {:?}", args);
+            lulu_start_pulse("mcp/korad/KD3005P").expect("Failed to start lulu pulse");
 
             // Initialize: create the engine
             let engine = Engine::new();
@@ -62,6 +73,13 @@ async fn main() {
 
             // Wait: for service to finish
             let _quit_reason = service.waiting().await.unwrap();
+
+            error!("MCP service has stopped. Reason: {:?}", _quit_reason);
+
+            // Lulu-logs: drain and shutdown
+            if lulu_enabled {
+                lulu_shutdown();
+            }
         }
     }
 }

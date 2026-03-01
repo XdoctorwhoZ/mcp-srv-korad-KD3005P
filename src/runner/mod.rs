@@ -9,6 +9,7 @@ use crate::types::OnOffValue;
 use ka3005p::Command;
 use ka3005p::Ka3005p;
 use ka3005p::Switch;
+use lulu_logs_client::{lulu_publish, Data, LogLevel};
 use tracing::info;
 
 /// Runner for managing a single Korad KD3005P power supply.
@@ -55,6 +56,12 @@ impl Runner {
             .map_err(|e| anyhow::anyhow!("Failed to enable OCP: {:?}", e))?;
 
         info!("[{}] Connection established", name);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "runner",
+            LogLevel::Info,
+            Data::String(format!("[{}] Connection established", name)),
+        );
 
         Ok(Self {
             name,
@@ -82,6 +89,12 @@ impl Runner {
 
         let read_back = self.driver.read_set_voltage()?;
         info!("[{}] Voltage set to {}", self.name, read_back);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", self.name),
+            "runner",
+            LogLevel::Info,
+            Data::Float32(read_back),
+        );
         Ok(read_back)
     }
 
@@ -104,6 +117,12 @@ impl Runner {
 
         let read_back = self.driver.read_set_current()?;
         info!("[{}] Current set to {}", self.name, read_back);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", self.name),
+            "runner",
+            LogLevel::Info,
+            Data::Float32(read_back),
+        );
         Ok(read_back)
     }
 
@@ -142,6 +161,12 @@ impl Runner {
 
         let read_back = self.driver.read_output_enable()?;
         info!("[{}] Output state: {}", self.name, read_back);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", self.name),
+            "runner",
+            LogLevel::Info,
+            Data::Bool(read_back),
+        );
         Ok(read_back)
     }
 

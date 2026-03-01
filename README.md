@@ -8,6 +8,38 @@
 # agent will test the connected power supply
 ```
 
+## Copilot CLI
+
+`~/.copilot/mcp-config.json`
+
+```json
+{
+  "mcpServers": {
+    "lulu-logs": {
+      "type": "stdio",
+      "command": "mcp-srv-lulu-logs",
+      "tools": [
+        "*"
+      ],
+      "args": [
+        "--lulu",
+        "127.0.0.1:1883"
+      ]
+    },
+    "korad-KD3005P": {
+      "type": "stdio",
+      "command": "mcp-srv-korad-kd3005p",
+      "tools": [
+        "*"
+      ],
+      "args": [
+        "--lulu",
+        "127.0.0.1:1883"
+      ]
+    }
+  }
+}
+```
 
 ## Add to VS Code Copilot
 

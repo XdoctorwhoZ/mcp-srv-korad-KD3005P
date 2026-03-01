@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
 
+use lulu_logs_client::{lulu_publish, Data, LogLevel};
 use tracing::info;
 use tracing::instrument;
 
@@ -96,6 +97,12 @@ impl Engine {
             .insert(name.to_string(), Arc::new(Mutex::new(runner)));
 
         info!("Runner '{}' created and connected", name);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "engine",
+            LogLevel::Info,
+            Data::String(format!("[{}] Runner created and connected", name)),
+        );
         Ok(())
     }
 
