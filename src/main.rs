@@ -11,11 +11,8 @@ use rmcp::transport::stdio;
 use rmcp::ServiceExt;
 use tracing::error;
 use tracing::info;
-use tracing::Level;
 
 use lulu_logs_client::{lulu_init, lulu_shutdown, lulu_start_pulse, LuluClientConfig};
-
-use trace::TraceBootstrap;
 
 use engine::Engine;
 
@@ -50,13 +47,8 @@ async fn main() {
                 .expect("Failed to initialize lulu-logs");
             }
 
-            // Setup: initialize tracing logger for debugging
-            TraceBootstrap::default()
-                .with_level(Level::TRACE)
-                .filter_rmcp()
-                .display_target(if cfg!(debug_assertions) { true } else { false })
-                .build()
-                .expect("failed to init logger");
+            // Setup: initialize tracing logger for debugging (debug builds only)
+            trace::init_tracing();
 
             info!("Starting Korad KD3005P MCP server with args: {:?}", args);
             lulu_start_pulse("mcp/korad/KD3005P").expect("Failed to start lulu pulse");
