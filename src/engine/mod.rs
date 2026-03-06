@@ -218,6 +218,33 @@ impl Engine {
 
     // ------------------------------------------------------------------------------
 
+    /// Delete a power supply instance and close its connection.
+    pub async fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
+        let mut runners = self.runners.lock().await;
+
+        if !runners.contains_key(name) {
+            return Err(anyhow::anyhow!(
+                "Power supply instance '{}' not found",
+                name
+            ));
+        }
+
+        // Remove the runner from the map
+        runners.remove(name);
+
+        info!("Runner '{}' deleted and connection closed", name);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "logs",
+            LogLevel::Info,
+            Data::String("Runner deleted and connection closed".to_string()),
+        );
+
+        Ok(())
+    }
+
+    // ------------------------------------------------------------------------------
+
     /// Get a runner by name, returning an error if not found.
     async fn get_runner(&self, name: &str) -> anyhow::Result<Arc<Mutex<Runner>>> {
         let runners = self.runners.lock().await;

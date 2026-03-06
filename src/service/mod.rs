@@ -78,6 +78,15 @@ struct GetPowerStateParams {
 
 // ================
 
+/// Parameters for deleting a power supply instance.
+#[derive(Serialize, Deserialize, JsonSchema)]
+struct DeleteInstanceParams {
+    /// Device name identifier
+    name: String,
+}
+
+// ================
+
 /// Parameters for checking instance status.
 #[derive(Serialize, Deserialize, JsonSchema)]
 struct CheckInstanceParams {
@@ -443,6 +452,47 @@ impl PowerSupplyEmulatorService {
         };
 
         let message = format!("Power supply '{}' state: {}", name, state_str);
+
+        info!("{}", message);
+        Ok(CallToolResult::success(vec![Content::text(message)]))
+    }
+
+    // --------------------------------------------------------------------------
+
+    /// Delete a power supply instance and close its connection.
+    #[tool(description = "Delete a power supply instance")]
+    async fn delete_instance(
+        &self,
+        params: Parameters<DeleteInstanceParams>,
+    ) -> Result<CallToolResult, McpError> {
+        // Logs
+        info!("----------------------------------------------------------------");
+        info!("Executing tool: delete_instance");
+
+        //
+        let name = &params.0.name;
+        info!("name: {}", name);
+
+        // Check if instance exists
+        let instances = self.engine.list_instance_names().await;
+        if !instances.contains(&name.to_string()) {
+            return Err(McpError::new(
+                ErrorCode::INVALID_PARAMS,
+                format!("Instance '{}' does not exist", name),
+                None,
+            ));
+        }
+
+        // Delete the instance
+        self.engine.delete_instance(name).await.map_err(|e| {
+            McpError::new(
+                ErrorCode::INTERNAL_ERROR,
+                format!("Failed to delete power supply instance '{}': {}", name, e),
+                None,
+            )
+        })?;
+
+        let message = format!("Power supply instance '{}' deleted successfully", name);
 
         info!("{}", message);
         Ok(CallToolResult::success(vec![Content::text(message)]))

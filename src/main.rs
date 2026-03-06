@@ -39,7 +39,7 @@ async fn main() {
     }
 
     info!("Starting Korad KD3005P MCP server with args: {:?}", args);
-    lulu_start_pulse("korad/KD3005P", Some(env!("BUILD_VERSION")))
+    lulu_start_pulse("mcp/korad/KD3005P", Some(env!("BUILD_VERSION")))
         .expect("Failed to start lulu pulse");
 
     // Initialize: create the engine
