@@ -13,7 +13,7 @@ Runners of this project must follow the following rules when using lulu-logs:
 - Each runner have the following attributes:
   - `voltage`: the 'float' voltage of the power supply.
   - `current`: the 'float' current of the power supply.
-  - `connected`: the 'boolean' connection status of the runner.
+  - `output_enabled`: the 'boolean' output status of the power supply.
   - `logs`: a generic 'string' attribute for logs of the runner.
   - `serial_number`: the 'string' serial number of the power supply. (e.g. KD3005P-123456)
   - `serial_port`: the 'string' serial port of the power supply. (e.g. COM3, /dev/ttyUSB0)

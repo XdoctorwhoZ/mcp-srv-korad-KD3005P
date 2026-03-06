@@ -178,7 +178,7 @@ impl Runner {
         info!("[{}] Output state: {}", self.name, read_back);
         let _ = lulu_publish(
             &format!("korad/kd3005p/{}", self.name),
-            "connected",
+            "output_enabled",
             LogLevel::Info,
             Data::Bool(read_back),
         );
