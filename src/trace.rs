@@ -1,4 +1,5 @@
 /// Server name used for log file naming
+#[cfg(debug_assertions)]
 const SERVER_NAME: &str = "mcp-srv-korad-KD3005P";
 
 // ================
