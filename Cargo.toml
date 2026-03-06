@@ -3,6 +3,7 @@ name = "mcp-srv-korad-KD3005P"
 version = "1.0.0"
 authors = ["XdoctorwhoZ <xavier.rodriguez@protonmail.com>"]
 edition = "2021"
+build = "build.rs"
 description = "Power Supply Agent for Korad KD3005P Power Supply Unit"
 license-file = "LICENSE"
 readme = "README.md"
