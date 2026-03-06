@@ -99,9 +99,9 @@ impl Engine {
         info!("Runner '{}' created and connected", name);
         let _ = lulu_publish(
             &format!("korad/kd3005p/{}", name),
-            "engine",
+            "logs",
             LogLevel::Info,
-            Data::String(format!("[{}] Runner created and connected", name)),
+            Data::String("Runner created and connected".to_string()),
         );
         Ok(())
     }

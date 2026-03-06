@@ -56,12 +56,27 @@ impl Runner {
             .map_err(|e| anyhow::anyhow!("Failed to enable OCP: {:?}", e))?;
 
         info!("[{}] Connection established", name);
-        let _ = lulu_publish(
+        lulu_publish(
             &format!("korad/kd3005p/{}", name),
-            "runner",
+            "logs",
             LogLevel::Info,
-            Data::String(format!("[{}] Connection established", name)),
-        );
+            Data::String("Connection established".to_string()),
+        )
+        .ok();
+        lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "serial_number",
+            LogLevel::Info,
+            Data::String(serial_number.clone()),
+        )
+        .ok();
+        lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "serial_port",
+            LogLevel::Info,
+            Data::String(port_name),
+        )
+        .ok();
 
         Ok(Self {
             name,
@@ -91,7 +106,7 @@ impl Runner {
         info!("[{}] Voltage set to {}", self.name, read_back);
         let _ = lulu_publish(
             &format!("korad/kd3005p/{}", self.name),
-            "runner",
+            "voltage",
             LogLevel::Info,
             Data::Float32(read_back),
         );
@@ -119,7 +134,7 @@ impl Runner {
         info!("[{}] Current set to {}", self.name, read_back);
         let _ = lulu_publish(
             &format!("korad/kd3005p/{}", self.name),
-            "runner",
+            "current",
             LogLevel::Info,
             Data::Float32(read_back),
         );
@@ -163,7 +178,7 @@ impl Runner {
         info!("[{}] Output state: {}", self.name, read_back);
         let _ = lulu_publish(
             &format!("korad/kd3005p/{}", self.name),
-            "runner",
+            "connected",
             LogLevel::Info,
             Data::Bool(read_back),
         );
