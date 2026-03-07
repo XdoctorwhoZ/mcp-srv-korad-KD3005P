@@ -1,19 +1,10 @@
 # MCP Server for *korad-KD3005P*
 
-## Run tests
+This MCP server allow the control of Korad KD3005P power supplies.
 
-```bash
-# into agent
-/test-hw
-# agent will test the connected power supply
-```
+![](./image.jpg)
 
-
-## Add to VS Code Copilot
-
-This server communicates over stdio and can be used directly as an MCP server in VS Code Copilot.
-
-### 1. Install the server
+## Install the server
 
 ```bash
 cargo install mcp-srv-korad-KD3005P
@@ -25,10 +16,46 @@ Or if you have cloned the repo
 cargo install --path .
 ```
 
-### 2. Register the server in VS Code
+## Test in VsCode With Copilot
 
-Run the following command in your terminal to add the server to your VS Code user profile (available across all workspaces):
+### Setup VsCode
+
+`~/.vscode/mcp.json`
+
+```json
+{
+  "servers": {
+    "korad-KD3005P": {
+      "type": "stdio",
+      "command": "mcp-srv-korad-kd3005p",
+    }
+  }
+}
+```
+
+With lulu-logs:
+
+```json
+{
+  "servers": {
+    "korad-KD3005P": {
+      "type": "stdio",
+      "command": "mcp-srv-korad-kd3005p",
+      "args": [
+        "--lulu",
+        "127.0.0.1:1883"
+      ]
+    }
+  }
+}
+```
+
+### Run the tests
+
+Inside the Agent chat use the prompt `/test-hw`
 
 ```bash
-code --add-mcp '{"name":"korad-KD3005P","command":"mcp-srv-korad-KD3005P"}'
+# into agent
+/test-hw
+# agent will test the connected power supply
 ```

@@ -3,65 +3,62 @@ mod constants;
 mod engine;
 mod runner;
 mod service;
-mod test;
 mod trace;
 mod types;
 
 use rmcp::transport::stdio;
 use rmcp::ServiceExt;
-use tracing::Level;
+use tracing::error;
+use tracing::info;
 
-use trace::TraceBootstrap;
+use lulu_logs_client::{lulu_init, lulu_shutdown, lulu_start_pulse, LuluClientConfig};
 
 use engine::Engine;
 
-/// Package name from Cargo.toml at compile time
-const PACKAGE_NAME: &str = env!("CARGO_PKG_NAME");
-
 /// Main entry point for the Korad KD3005P MCP server.
 ///
-/// Handles CLI argument parsing and starts either test mode or the MCP service.
+/// Handles CLI argument parsing and starts the MCP service.
 #[tokio::main]
 async fn main() {
+    // Setup: initialize tracing logger for debugging (debug builds only)
+    trace::init_tracing();
+
     // Parse: extract CLI arguments
     let args = cli::parse();
 
-    // Handle: CLI commands
-    match args.command {
-        Some(cli::Command::Test { scan }) => {
-            if scan {
-                println!("Scanning for available devices...");
-                test::test_available_devices();
-            } else {
-                println!("You need to specify a subcommand. Use --help for more information.");
-            }
-        }
-        None => {
-            // Setup: initialize tracing logger for debugging
-            TraceBootstrap::default()
-                .with_level(if cfg!(debug_assertions) {
-                    Level::TRACE
-                } else {
-                    Level::INFO
-                })
-                .filter_rmcp()
-                .display_target(if cfg!(debug_assertions) { true } else { false })
-                .on_mcp_file(PACKAGE_NAME)
-                .build()
-                .expect("failed to init logger");
+    // Lulu-logs: init if --lulu is provided
+    let lulu_enabled = args.lulu.is_some();
+    if let Some(ref addr) = args.lulu {
+        let (host, port) = cli::parse_lulu_address(addr);
+        lulu_init(LuluClientConfig {
+            broker_host: host,
+            broker_port: port,
+            ..LuluClientConfig::default()
+        })
+        .expect("Failed to initialize lulu-logs");
+    }
 
-            // Initialize: create the engine
-            let engine = Engine::new();
+    info!("Starting Korad KD3005P MCP server with args: {:?}", args);
+    lulu_start_pulse("mcp/korad/KD3005P", Some(env!("BUILD_VERSION")))
+        .expect("Failed to start lulu pulse");
 
-            // Start: create and serve the MCP service
-            let service = service::PowerSupplyEmulatorService::new(engine)
-                .unwrap()
-                .serve(stdio())
-                .await
-                .expect("Failed to serve the PowerSupplyEmulatorService");
+    // Initialize: create the engine
+    let engine = Engine::new();
 
-            // Wait: for service to finish
-            let _quit_reason = service.waiting().await.unwrap();
-        }
+    // Start: create and serve the MCP service
+    let service = service::PowerSupplyEmulatorService::new(engine)
+        .unwrap()
+        .serve(stdio())
+        .await
+        .expect("Failed to serve the PowerSupplyEmulatorService");
+
+    // Wait: for service to finish
+    let _quit_reason = service.waiting().await.unwrap();
+
+    error!("MCP service has stopped. Reason: {:?}", _quit_reason);
+
+    // Lulu-logs: drain and shutdown
+    if lulu_enabled {
+        lulu_shutdown();
     }
 }

@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 use std::time::Duration;
 
+use lulu_logs_client::{lulu_publish, Data, LogLevel};
 use tracing::info;
 use tracing::instrument;
 
@@ -96,6 +97,12 @@ impl Engine {
             .insert(name.to_string(), Arc::new(Mutex::new(runner)));
 
         info!("Runner '{}' created and connected", name);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "logs",
+            LogLevel::Info,
+            Data::String("Runner created and connected".to_string()),
+        );
         Ok(())
     }
 
@@ -207,6 +214,33 @@ impl Engine {
                 name
             ))
         }
+    }
+
+    // ------------------------------------------------------------------------------
+
+    /// Delete a power supply instance and close its connection.
+    pub async fn delete_instance(&self, name: &str) -> anyhow::Result<()> {
+        let mut runners = self.runners.lock().await;
+
+        if !runners.contains_key(name) {
+            return Err(anyhow::anyhow!(
+                "Power supply instance '{}' not found",
+                name
+            ));
+        }
+
+        // Remove the runner from the map
+        runners.remove(name);
+
+        info!("Runner '{}' deleted and connection closed", name);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "logs",
+            LogLevel::Info,
+            Data::String("Runner deleted and connection closed".to_string()),
+        );
+
+        Ok(())
     }
 
     // ------------------------------------------------------------------------------

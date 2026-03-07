@@ -1,0 +1,60 @@
+[package]
+name = "mcp-srv-korad-KD3005P"
+version = "1.0.0"
+authors = ["XdoctorwhoZ <xavier.rodriguez@protonmail.com>"]
+edition = "2021"
+build = "build.rs"
+description = "Power Supply Agent for Korad KD3005P Power Supply Unit"
+license-file = "LICENSE"
+readme = "README.md"
+repository = "https://github.com/XdoctorwhoZ/mcp-srv-korad-KD3005P"
+
+exclude = [".DS_Store", "test-plan.md", "target", ".github", ".vscode"]
+
+[dependencies]
+# ---
+# Error handling utilities
+anyhow = "1.0.100"
+# ---
+# Command-line argument parsing
+clap = { version = "4.1.8", features = ["derive"] }
+# ---
+# Korad KD3005P device driver
+ka3005p = "0.7.0"
+# ---
+# RMCP protocol support
+rmcp = { version = "0.11.0", features = [
+    "elicitation",
+    "macros",
+    "schemars",
+    "server",
+    "transport-io",
+] }
+# ---
+# JSON schema generation
+schemars = "1.0"
+# ---
+# Serialization framework
+serde = { version = "1.0", features = ["derive"] }
+# ---
+# JSON serialization
+serde_json = "1.0"
+# ---
+# Serial port abstraction
+serialport = "4.8.1"
+# ---
+# Async runtime
+tokio = { version = "1.48.0", features = ["full"] }
+# ---
+# lulu-logs MQTT logging client
+lulu-logs-client = { path = "../lulu-logs/rust-client" }
+# ---
+# Structured logging
+tracing = "0.1.37"
+# ---
+# Logging subscriber
+tracing-subscriber = { version = "0.3", features = [
+    "env-filter",
+    "json",
+    "registry",
+] }

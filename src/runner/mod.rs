@@ -9,6 +9,7 @@ use crate::types::OnOffValue;
 use ka3005p::Command;
 use ka3005p::Ka3005p;
 use ka3005p::Switch;
+use lulu_logs_client::{lulu_publish, Data, LogLevel};
 use tracing::info;
 
 /// Runner for managing a single Korad KD3005P power supply.
@@ -55,6 +56,27 @@ impl Runner {
             .map_err(|e| anyhow::anyhow!("Failed to enable OCP: {:?}", e))?;
 
         info!("[{}] Connection established", name);
+        lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "logs",
+            LogLevel::Info,
+            Data::String("Connection established".to_string()),
+        )
+        .ok();
+        lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "serial_number",
+            LogLevel::Info,
+            Data::String(serial_number.clone()),
+        )
+        .ok();
+        lulu_publish(
+            &format!("korad/kd3005p/{}", name),
+            "serial_port",
+            LogLevel::Info,
+            Data::String(port_name),
+        )
+        .ok();
 
         Ok(Self {
             name,
@@ -82,6 +104,12 @@ impl Runner {
 
         let read_back = self.driver.read_set_voltage()?;
         info!("[{}] Voltage set to {}", self.name, read_back);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", self.name),
+            "voltage",
+            LogLevel::Info,
+            Data::Float32(read_back),
+        );
         Ok(read_back)
     }
 
@@ -104,6 +132,12 @@ impl Runner {
 
         let read_back = self.driver.read_set_current()?;
         info!("[{}] Current set to {}", self.name, read_back);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", self.name),
+            "current",
+            LogLevel::Info,
+            Data::Float32(read_back),
+        );
         Ok(read_back)
     }
 
@@ -142,6 +176,12 @@ impl Runner {
 
         let read_back = self.driver.read_output_enable()?;
         info!("[{}] Output state: {}", self.name, read_back);
+        let _ = lulu_publish(
+            &format!("korad/kd3005p/{}", self.name),
+            "output_enabled",
+            LogLevel::Info,
+            Data::Bool(read_back),
+        );
         Ok(read_back)
     }
 
